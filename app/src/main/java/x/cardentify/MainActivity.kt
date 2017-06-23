@@ -16,19 +16,26 @@ import com.commonsware.cwac.cam2.ZoomStyle
 import org.tensorflow.contrib.android.TensorFlowInferenceInterface
 
 import kotlinx.android.synthetic.main.activity_main.*
+import java.util.*
 
 class MainActivity : AppCompatActivity() {
 
     val REQUEST_CAMERA: Int = 1337
 
     val VECTOR_SIZE = 256
-    val IMAGE_WIDTH = 224
-    val IMAGE_HEIGHT = 224
-    val INPUT_NAME = "InputImages"
-    val OUTPUT_NAMES = arrayOf("network_3/ImageVectors")
+    val INPUT_IMAGES_NAME = "InputImages"
+    val INPUT_VECTORS_NAME = "InputVectors"
+    val SORTED_SIMILARITIES_NAME = "SortedSimilarities"
+    val SORTED_SIMILARITIES_INDICES_NAME = "SortedSimilarities:1"
     val MODEL_PATH = "file:///android_asset/model.pb"
 
-    val imageVector = FloatArray(VECTOR_SIZE)
+    var vectorFloats: FloatArray? = null
+
+    val vectorCount: Int
+        get() {
+            val floats = vectorFloats!!
+            return floats.size / VECTOR_SIZE
+        }
 
     var inferenceInterface: TensorFlowInferenceInterface? = null
 
@@ -36,14 +43,31 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
     }
 
+    fun loadVectors() {
+        // Create some random vectors
+        val testVectors = FloatArray(1000 * VECTOR_SIZE)
+        val rng = Random()
+        for(i in 0..testVectors.size-1) {
+            testVectors[i] = 2.0f * (rng.nextFloat() - 0.5f)
+        }
+
+        vectorFloats = testVectors
+    }
+
     fun calculateImageVector(bitmap: Bitmap) {
         Trace.beginSection("calculateImageVector")
+
+        val vectorFloats = vectorFloats!!
+        val inferenceInterface = inferenceInterface!!
+
         val pixelCount = bitmap.width * bitmap.height
 
         // Allocate the image buffers
         // TODO: Move these to where camera photo size is known and allocate only once
         val imageInts = IntArray(pixelCount) // Each pixel stored as 32 bit int
         val imageFloats = FloatArray(pixelCount * 3) // RGB
+
+        val convTime = System.currentTimeMillis()
 
         // Load the bitmap pixels into the integer array
         bitmap.getPixels(imageInts, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
@@ -59,27 +83,39 @@ class MainActivity : AppCompatActivity() {
                     2.0f * ((pixelValue and 0xFF).toFloat() / 255.0f - 0.5f)
         }
 
+        Log.d("calculateImageVector", "Time taken for conversion: " +
+                (System.currentTimeMillis() - convTime).toString() + "ms")
+
+        val infTime = System.currentTimeMillis()
+
         // Copy image floats to TensorFlow
-        inferenceInterface!!.feed(INPUT_NAME, imageFloats, 1, bitmap.width.toLong(),
-                bitmap.height.toLong(), 3)
+        inferenceInterface.feed(INPUT_IMAGES_NAME, imageFloats,
+                1, bitmap.width.toLong(), bitmap.height.toLong(), 3)
+
+        // Copy vector floats to TensorFlow
+        inferenceInterface.feed(INPUT_VECTORS_NAME, vectorFloats,
+                vectorCount.toLong(), VECTOR_SIZE.toLong())
 
         // Run TensorFlow calculations
-        inferenceInterface!!.run(OUTPUT_NAMES, false)
+        inferenceInterface.run(arrayOf(SORTED_SIMILARITIES_INDICES_NAME, SORTED_SIMILARITIES_NAME), false)
 
         // Get results
-        inferenceInterface!!.fetch(OUTPUT_NAMES[0], imageVector)
+        val sortedSimilaritiesIndices = IntArray(vectorCount)
+        val sortedSimilarities = FloatArray(vectorCount)
+
+        inferenceInterface.fetch(SORTED_SIMILARITIES_INDICES_NAME, sortedSimilaritiesIndices)
+        inferenceInterface.fetch(SORTED_SIMILARITIES_NAME, sortedSimilarities)
+
+        Log.d("calculateImageVector", "Time taken for inference: " +
+                (System.currentTimeMillis() - infTime).toString() + "ms")
+
+        Log.d("calculateImageVector", "Sorted similarities indices: " + sortedSimilaritiesIndices.joinToString())
+        Log.d("calculateImageVector", "Sorted similarities: " + sortedSimilarities.joinToString())
+
         Trace.endSection()
-
-        var vectorString = ""
-        for(f in imageVector) {
-            vectorString += f.toString() + ", "
-        }
-
-        Log.d("calculateImageVector", "Calculated vector: " + vectorString)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
@@ -87,6 +123,8 @@ class MainActivity : AppCompatActivity() {
         Trace.beginSection("CreateInferenceInterface")
         inferenceInterface = TensorFlowInferenceInterface(assets, MODEL_PATH)
         Trace.endSection()
+
+        loadVectors()
 
         fabCamera.setOnClickListener { view ->
 
@@ -114,9 +152,7 @@ class MainActivity : AppCompatActivity() {
                 Log.d("Main", bitmap.toString())
 
                 if(bitmap != null) {
-                    val resizedBitmap = Bitmap.createScaledBitmap(
-                            bitmap, IMAGE_WIDTH, IMAGE_HEIGHT, false)
-                    calculateImageVector(resizedBitmap)
+                    calculateImageVector(bitmap)
                 }
             }
     }
