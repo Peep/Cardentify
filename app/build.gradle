@@ -35,4 +35,5 @@ dependencies {
     implementation 'com.android.support:design:25.4.0'
 
     compile 'com.commonsware.cwac:cam2:0.7.6'
+    compile 'org.tensorflow:tensorflow-android:+'
 }
