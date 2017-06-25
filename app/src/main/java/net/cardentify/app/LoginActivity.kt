@@ -19,6 +19,11 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
         presenter = LoginPresenter(this)
 
         findViewById(R.id.sign_in_button).setOnClickListener(this)
+
+        // TODO(Corey): Move to proper location, just testing basic Realm stuff
+        val realm = RealmProvider(applicationContext, LoginMethod.USERPASS)
+        // If using LoginMethod.Google, call setAccessToken() before CreateSyncUser
+        realm.CreateSyncUser()
     }
 
     override fun onClick(clickedView: View?) {
