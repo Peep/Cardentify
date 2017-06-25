@@ -47,7 +47,7 @@ class LoginPresenter constructor(val loginActivity: LoginActivity)
                 }
             }
         } else {
-
+            Log.e("onSignInResult", "Authentication failed: ${result.status.statusMessage}")
         }
     }
 }
