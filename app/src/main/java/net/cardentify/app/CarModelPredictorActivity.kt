@@ -1,6 +1,7 @@
 package net.cardentify.app
 
 import android.app.Activity
+import android.app.ProgressDialog
 import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Bundle
@@ -23,10 +24,39 @@ class CarModelPredictorActivity : AppCompatActivity() {
 
     var carModelAdapter: CarModelListAdapter? = null
 
+    // A dialog showing that something is in progress
+    // Use showProgress(title) and hideProgress()
+    private var progressDialog: ProgressDialog? = null
+
     override fun onResume() {
         super.onResume()
     }
 
+    /**
+     * Clears all items from the car model list
+     */
+    fun clearCarModelItems() {
+        val adapter = carModelAdapter
+
+        when(adapter) {
+            is CarModelListAdapter -> {
+                adapter.cars.clear()
+                adapter.similarities.clear()
+
+                adapter.notifyDataSetChanged()
+            }
+            null -> {
+                Log.e("clearCarModelItems", "carModelAdapter is null")
+            }
+        }
+    }
+
+    /**
+     * Clears all items from the car model list and populates it with
+     * [carNames] and [similarities]
+     * @param[carNames] List of names of cars
+     * @param[similarities] List of similarities for the cars
+     */
     fun setCarModelItems(carNames: Collection<String>, similarities: FloatArray) {
         val adapter = carModelAdapter
 
@@ -44,6 +74,26 @@ class CarModelPredictorActivity : AppCompatActivity() {
                 Log.e("setCarModelListItem", "carModelAdapter is null")
             }
         }
+    }
+
+    /**
+     * Shows a progress overlay
+     * @param[message] Message to display in the overlay
+     */
+    fun showProgress(message: String) {
+        val dialog = progressDialog ?: ProgressDialog(this)
+        dialog.setMessage(message)
+        dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER)
+        dialog.isIndeterminate = true
+        dialog.show()
+        progressDialog = dialog
+    }
+
+    /**
+     * Hides the progress overlay if any
+     */
+    fun hideProgress() {
+        progressDialog?.hide()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

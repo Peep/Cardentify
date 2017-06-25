@@ -16,6 +16,9 @@ class CarModelPredictorPresenter constructor(val activity: CarModelPredictorActi
         val bm = bitmap
         when (bm){
             is Bitmap -> {
+                activity.clearCarModelItems()
+                activity.showProgress("Predicting car")
+
                 Observable
                     .just(1)
                     .subscribeOn(Schedulers.computation())
@@ -23,6 +26,7 @@ class CarModelPredictorPresenter constructor(val activity: CarModelPredictorActi
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe { (similarities, names) ->
                         activity.setCarModelItems(names, similarities)
+                        activity.hideProgress()
                     }
             }
             null -> {
