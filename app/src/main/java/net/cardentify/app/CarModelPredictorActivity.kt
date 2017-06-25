@@ -25,11 +25,13 @@ class CarModelPredictorActivity : AppCompatActivity() {
 
     var carModelAdapter: CarModelListAdapter? = null
 
-    // A dialog showing that something is in progress
-    // Use showProgress(title) and hideProgress()
-    private var progressDialog: ProgressDialog? = null
+    /**
+     * A dialog showing that something is in progress.
+     * Use showProgress(title) and hideProgress()
+     */
 
-    private var account: GoogleSignInAccount? = null
+
+    private var progressDialog: ProgressDialog? = null
 
     override fun onResume() {
         super.onResume()
