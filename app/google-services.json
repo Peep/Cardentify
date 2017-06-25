@@ -1,9 +1,7 @@
 {
   "project_info": {
     "project_number": "203243799188",
-    "firebase_url": "https://cardentify.firebaseio.com",
-    "project_id": "cardentify",
-    "storage_bucket": "cardentify.appspot.com"
+    "project_id": "cardentify"
   },
   "client": [
     {
@@ -14,10 +12,6 @@
         }
       },
       "oauth_client": [
-        {
-          "client_id": "203243799188-78l98fpd9anebu06phbsgl993fp8n0sk.apps.googleusercontent.com",
-          "client_type": 3
-        },
         {
           "client_id": "203243799188-f7bn6s2k1o8s3m8f9s92cj86hhaqk78s.apps.googleusercontent.com",
           "client_type": 1,
@@ -41,16 +35,11 @@
           "status": 1
         },
         "appinvite_service": {
-          "status": 2,
-          "other_platform_oauth_client": [
-            {
-              "client_id": "203243799188-78l98fpd9anebu06phbsgl993fp8n0sk.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
+          "status": 1,
+          "other_platform_oauth_client": []
         },
         "ads_service": {
-          "status": 2
+          "status": 1
         }
       }
     }
