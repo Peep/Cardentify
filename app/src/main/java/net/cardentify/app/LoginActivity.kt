@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.view.View
 import com.google.android.gms.auth.api.Auth
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.common.api.GoogleApiClient
 
 
@@ -19,11 +20,6 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
         presenter = LoginPresenter(this)
 
         findViewById(R.id.sign_in_button).setOnClickListener(this)
-
-        // TODO(Corey): Move to proper location, just testing basic Realm stuff
-        val realm = RealmProvider(applicationContext, LoginMethod.USERPASS)
-        // If using LoginMethod.Google, call setAccessToken() before CreateSyncUser
-        realm.CreateSyncUser()
     }
 
     override fun onClick(clickedView: View?) {
@@ -45,8 +41,9 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
         startActivityForResult(signInIntent, RC_SIGN_IN)
     }
 
-    fun showCarModelPredictorActivity() {
+    fun showCarModelPredictorActivity(account: GoogleSignInAccount) {
         val intent = Intent(this, CarModelPredictorActivity::class.java)
+        intent.putExtra(getString(R.string.extra_google_sign_in_account), account)
         startActivity(intent)
     }
 }

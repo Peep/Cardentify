@@ -14,6 +14,7 @@ import com.commonsware.cwac.cam2.CameraActivity
 import com.commonsware.cwac.cam2.Facing
 import com.commonsware.cwac.cam2.FocusMode
 import com.commonsware.cwac.cam2.ZoomStyle
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import kotlinx.android.synthetic.main.activity_car_model_predictor.fab_camera
 import kotlinx.android.synthetic.main.activity_car_model_predictor.toolbar
 
@@ -27,6 +28,8 @@ class CarModelPredictorActivity : AppCompatActivity() {
     // A dialog showing that something is in progress
     // Use showProgress(title) and hideProgress()
     private var progressDialog: ProgressDialog? = null
+
+    private var account: GoogleSignInAccount? = null
 
     override fun onResume() {
         super.onResume()
@@ -97,20 +100,11 @@ class CarModelPredictorActivity : AppCompatActivity() {
         progressDialog?.hide()
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_car_model_predictor)
-        setSupportActionBar(toolbar)
-
-        presenter = CarModelPredictorPresenter(this)
-
-        // Setup the car model list adapter
-        carModelAdapter = CarModelListAdapter(this)
-        val carModelList = findViewById(R.id.car_model_list) as ListView
-        carModelList.adapter = carModelAdapter
-
-        fab_camera.setOnClickListener { view ->
-            val intent : Intent = CameraActivity.IntentBuilder(view.context)
+    /**
+     * Starts the camera activity
+     */
+    fun showCameraActivity() {
+        val intent : Intent = CameraActivity.IntentBuilder(this)
                 .skipConfirm()
                 .facing(Facing.BACK)
                 .facingExactMatch()
@@ -119,7 +113,28 @@ class CarModelPredictorActivity : AppCompatActivity() {
                 .zoomStyle(ZoomStyle.PINCH)
                 .build()
 
-            startActivityForResult(intent, REQUEST_CAMERA)
+        startActivityForResult(intent, REQUEST_CAMERA)
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_car_model_predictor)
+        setSupportActionBar(toolbar)
+
+        val pres = CarModelPredictorPresenter(this)
+        presenter = pres
+
+        pres.onAccountReceived(intent.getParcelableExtra<GoogleSignInAccount>(
+                getString(R.string.extra_google_sign_in_account)))
+
+        // Setup the car model list adapter
+        carModelAdapter = CarModelListAdapter(this)
+        val carModelList = findViewById(R.id.car_model_list) as ListView
+        carModelList.adapter = carModelAdapter
+
+        // Setup the camera click button event
+        fab_camera.setOnClickListener { _ ->
+            pres.onCameraButtonClicked()
         }
     }
 
