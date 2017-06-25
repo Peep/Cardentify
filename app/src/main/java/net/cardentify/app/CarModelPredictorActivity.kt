@@ -106,6 +106,7 @@ class CarModelPredictorActivity : AppCompatActivity() {
      */
     fun showCameraActivity() {
         val intent : Intent = CameraActivity.IntentBuilder(this)
+                .requestPermissions()
                 .skipConfirm()
                 .facing(Facing.BACK)
                 .facingExactMatch()
