@@ -21,6 +21,14 @@
           }
         },
         {
+          "client_id": "203243799188-brk7es6svdao2sdqpnsjg65v85dphjmd.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "net.cardentify.app",
+            "certificate_hash": "849394A7E4DB95B9FCCCA1C4814D3A1A787F60E4"
+          }
+        },
+        {
           "client_id": "203243799188-0cqnp623flqvnjq77o5on672mp28jr02.apps.googleusercontent.com",
           "client_type": 3
         }
