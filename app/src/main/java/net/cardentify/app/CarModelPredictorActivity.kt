@@ -85,6 +85,7 @@ class CarModelPredictorActivity : AppCompatActivity() {
         dialog.setMessage(message)
         dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER)
         dialog.isIndeterminate = true
+        dialog.setCancelable(false)
         dialog.show()
         progressDialog = dialog
     }
