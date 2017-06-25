@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "203243799188",
+    "project_id": "cardentify"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:203243799188:android:c78a85b124ca7f41",
+        "android_client_info": {
+          "package_name": "net.cardentify.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "203243799188-f7bn6s2k1o8s3m8f9s92cj86hhaqk78s.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "net.cardentify.app",
+            "certificate_hash": "e9e4ff840da384373e7343740d4623e59c6a537f"
+          }
+        },
+        {
+          "client_id": "203243799188-0cqnp623flqvnjq77o5on672mp28jr02.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyATjuyR5nNQQTcy3hY0zQw4541EeJ1YWxY"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 1
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,25 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="40dp"
+    android:background="#DDF"
+    android:padding="@dimen/widget_margin">
+
+    <TextView
+        android:id="@+id/car_model_text"
+        android:layout_width="150dp"
+        android:layout_height="match_parent"
+        android:text="Car Model"
+        android:textColor="#111"
+        android:textSize="28sp" />
+
+    <ProgressBar
+        android:id="@+id/car_model_bar"
+        android:layout_width="fill_parent"
+        android:layout_height="match_parent"
+        android:progress="70"
+        android:progressBackgroundTint="#00000000"
+        style="@android:style/Widget.ProgressBar.Horizontal"
+        />
+
+
+</LinearLayout>
