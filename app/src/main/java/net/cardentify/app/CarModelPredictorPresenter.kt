@@ -19,7 +19,8 @@ class CarModelPredictorPresenter constructor(val activity: CarModelPredictorActi
             val token = account.idToken
             when(token) {
                 is String -> {
-                    val realm = RealmProvider(activity, RealmProvider.LoginMethod.GOOGLE)
+                    val realm = RealmProvider(activity.applicationContext,
+                            RealmProvider.LoginMethod.GOOGLE)
                     realm.token = token
                     realm.createSyncUser()
                 }

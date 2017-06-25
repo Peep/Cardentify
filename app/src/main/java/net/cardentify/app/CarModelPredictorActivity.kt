@@ -97,7 +97,8 @@ class CarModelPredictorActivity : AppCompatActivity() {
      * Hides the progress overlay if any
      */
     fun hideProgress() {
-        progressDialog?.hide()
+        progressDialog?.dismiss()
+        progressDialog = null
     }
 
     /**
