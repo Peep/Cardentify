@@ -97,8 +97,13 @@ class CarModelPredictorInteractor constructor(assets: AssetManager) {
         Log.d("calculateImageVector", "Time taken for inference: " +
                 (System.currentTimeMillis() - infTime).toString() + "ms")
 
-        val similarities = sortedSimilarities.map { sim -> (sim - sortedSimilarities.min()!!) /
-                (sortedSimilarities.max()!! - sortedSimilarities.min()!!) }.toFloatArray()
+        // Map similarities to 0..1 while avoiding division by zero
+        val simMin = sortedSimilarities.min()!!
+        val simRange = sortedSimilarities.max()!! - simMin
+
+        val similarities = sortedSimilarities.map { sim ->
+            (sim - simMin) / if(simRange == 0.0f) 1.0f else simRange
+        }.toFloatArray()
 
         val unsortedNames = carNames!!
         val sortedNames = sortedSimilaritiesIndices.map {i -> unsortedNames[i] }
