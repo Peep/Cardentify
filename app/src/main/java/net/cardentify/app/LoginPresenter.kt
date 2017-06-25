@@ -14,6 +14,15 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount
  */
 class LoginPresenter constructor(val loginActivity: LoginActivity)
             : GoogleApiClient.OnConnectionFailedListener {
+    val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken(loginActivity.getString(R.string.google_client_id))
+            .build()!!
+
+    val googleApiClient = GoogleApiClient.Builder(loginActivity)
+            .enableAutoManage(loginActivity, this)
+            .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
+            .build()!!
+
     var account: GoogleSignInAccount? = null
 
     override fun onConnectionFailed(connectionResult: ConnectionResult) {
@@ -21,15 +30,6 @@ class LoginPresenter constructor(val loginActivity: LoginActivity)
     }
 
     fun onSignInClicked() {
-        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(loginActivity.getString(R.string.google_client_id))
-                .build()!!
-
-        val googleApiClient = GoogleApiClient.Builder(loginActivity)
-                .enableAutoManage(loginActivity, this)
-                .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
-                .build()!!
-
         loginActivity.showSignIn(googleApiClient)
     }
 
