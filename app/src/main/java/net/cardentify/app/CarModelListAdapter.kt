@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
+import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
 
@@ -41,6 +42,9 @@ class CarModelListAdapter constructor(val context: Context) : BaseAdapter() {
                 inflater.inflate(R.layout.car_model_list_item, container, false)
             }
         }
+
+        val icon = convView.findViewById(R.id.car_model_icon) as ImageView
+        icon.setImageResource(R.mipmap.ic_launcher_round)
 
         val textView = convView.findViewById(R.id.car_model_text) as TextView
         textView.text = cars[position]

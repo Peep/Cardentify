@@ -4,6 +4,12 @@
     android:background="#DDF"
     android:padding="@dimen/widget_margin">
 
+    <ImageView
+        android:id="@+id/car_model_icon"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_gravity="center"/>
+
     <TextView
         android:id="@+id/car_model_text"
         android:layout_width="150dp"
