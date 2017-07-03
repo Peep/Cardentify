@@ -4,8 +4,6 @@ apply plugin: 'kotlin-android'
 
 apply plugin: 'kotlin-android-extensions'
 
-apply plugin: 'realm-android'
-
 android {
     compileSdkVersion 25
     buildToolsVersion "25.0.3"
@@ -16,6 +14,14 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    splits {
+        abi {
+            enable true
+            reset()
+            include "x86", "x86_64", "armeabi-v7a", "arm64-v8a"
+            universalApk true //generate an additional APK that contains all the ABIs
+        }
     }
     buildTypes {
         release {
@@ -39,14 +45,8 @@ dependencies {
     compile 'com.commonsware.cwac:cam2:0.7.6'
     compile 'org.tensorflow:tensorflow-android:1.2.0'
 
-    compile 'com.google.android.gms:play-services-auth:11.0.1'
-
     compile "io.reactivex.rxjava2:rxandroid:2.0.1"
     compile "io.reactivex.rxjava2:rxkotlin:2.1.0"
-}
 
-apply plugin: 'com.google.gms.google-services'
-
-realm {
-    syncEnabled = true
+    compile 'com.google.protobuf:protobuf-java:3.3.1'
 }

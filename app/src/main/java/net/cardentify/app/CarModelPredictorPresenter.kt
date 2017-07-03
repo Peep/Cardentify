@@ -2,7 +2,6 @@ package net.cardentify.app
 
 import android.graphics.Bitmap
 import android.util.Log
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
@@ -12,27 +11,6 @@ import io.reactivex.schedulers.Schedulers
  */
 class CarModelPredictorPresenter constructor(val activity: CarModelPredictorActivity) {
     val predictor = CarModelPredictorInteractor(activity.assets)
-
-    fun onAccountReceived(account: GoogleSignInAccount?) {
-        // Get the account token and create the realm user
-        if(account != null) {
-            val token = account.idToken
-            when(token) {
-                is String -> {
-                    val realm = RealmProvider(activity.applicationContext,
-                            RealmProvider.LoginMethod.GOOGLE)
-                    realm.token = token
-                    realm.createSyncUser()
-                }
-                null -> {
-                    Log.e("onAccountReceived", "account.idToken was null")
-                }
-            }
-
-        } else {
-            Log.e("onAccountReceived", "account was null")
-        }
-    }
 
     fun onCameraResult(bitmap: Bitmap?) {
         val bm = bitmap

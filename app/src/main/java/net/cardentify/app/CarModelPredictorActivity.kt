@@ -14,7 +14,6 @@ import com.commonsware.cwac.cam2.CameraActivity
 import com.commonsware.cwac.cam2.Facing
 import com.commonsware.cwac.cam2.FocusMode
 import com.commonsware.cwac.cam2.ZoomStyle
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import kotlinx.android.synthetic.main.activity_car_model_predictor.fab_camera
 import kotlinx.android.synthetic.main.activity_car_model_predictor.toolbar
 
@@ -29,8 +28,6 @@ class CarModelPredictorActivity : AppCompatActivity() {
      * A dialog showing that something is in progress.
      * Use showProgress(title) and hideProgress()
      */
-
-
     private var progressDialog: ProgressDialog? = null
 
     override fun onResume() {
@@ -127,9 +124,6 @@ class CarModelPredictorActivity : AppCompatActivity() {
 
         val pres = CarModelPredictorPresenter(this)
         presenter = pres
-
-        pres.onAccountReceived(intent.getParcelableExtra<GoogleSignInAccount>(
-                getString(R.string.extra_google_sign_in_account)))
 
         // Setup the car model list adapter
         carModelAdapter = CarModelListAdapter(this)
