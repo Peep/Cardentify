@@ -10,7 +10,22 @@ import io.reactivex.schedulers.Schedulers
  * Created by Tora on 6/25/2017.
  */
 class CarModelPredictorPresenter constructor(val activity: CarModelPredictorActivity) {
-    val predictor = CarModelPredictorInteractor(activity.assets)
+    lateinit var predictor: CarModelPredictorInteractor
+
+    init {
+        activity.showProgress("Loading data")
+        Observable
+            .just(1)
+            .subscribeOn(Schedulers.io())
+            .map {
+                return@map CarModelPredictorInteractor(activity.assets)
+            }
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe { pred: CarModelPredictorInteractor ->
+                predictor = pred
+                activity.hideProgress()
+            }
+    }
 
     fun onCameraResult(bitmap: Bitmap?) {
         val bm = bitmap
