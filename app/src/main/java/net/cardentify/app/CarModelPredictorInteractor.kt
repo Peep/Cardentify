@@ -4,7 +4,9 @@ import android.content.res.AssetManager
 import android.graphics.Bitmap
 import android.os.Trace
 import android.util.Log
+import net.cardentify.data.CarListOuterClass
 import org.tensorflow.contrib.android.TensorFlowInferenceInterface
+import java.io.FileInputStream
 import java.util.*
 
 /**
@@ -16,38 +18,59 @@ class CarModelPredictorInteractor constructor(assets: AssetManager) {
     val VECTOR_SIZE = 256
     val INPUT_IMAGES_NAME = "InputImages"
     val INPUT_VECTORS_NAME = "InputVectors"
+    val INPUT_LABELS_NAME = "InputLabels"
     val SORTED_SIMILARITIES_NAME = "SortedSimilarities"
     val SORTED_SIMILARITIES_INDICES_NAME = "SortedSimilarities:1"
     val MODEL_PATH = "file:///android_asset/model.pb"
+    val VECTORS_PATH = "vectors.pb"
 
     val inferenceInterface = TensorFlowInferenceInterface(assets, MODEL_PATH)
 
-    var vectorFloats: FloatArray? = null
-    val vectorCount: Int
+    var carVectors: FloatArray
+    var carLabels: IntArray
+    val carCount: Int
         get() {
-            val floats = vectorFloats!!
-            return floats.size / VECTOR_SIZE
+            return carVectors.size / VECTOR_SIZE
         }
-    var carNames: List<String>? = null
+
+    var carLabelNames: List<String>
+    val carLabelCount: Int
+        get() {
+            return carLabelNames.size
+        }
 
     init {
-        // Create some random vectors
-        val count = 1000
+        val carList = CarListOuterClass.CarList.parseFrom(assets.open(VECTORS_PATH))
 
-        val testVectors = FloatArray(count * VECTOR_SIZE)
-        val rng = Random()
-        for(i in 0..testVectors.size-1) {
-            testVectors[i] = 2.0f * (rng.nextFloat() - 0.5f)
+        val vectors = ArrayList<Float>()
+        val labels = ArrayList<Int>()
+        val labelNames = ArrayList<String>()
+
+        for(car in carList.carsList) {
+            // Check if we already know about this car
+            if(!labelNames.contains(car.name)) {
+                labelNames.add(car.name)
+            }
+
+            val carLabelIndex = labelNames.indexOf(car.name)
+
+            for(vector in car.vectorsList) {
+                if(vector.vectorCount == VECTOR_SIZE) {
+                    vectors.addAll(vector.vectorList)
+                    labels.add(carLabelIndex)
+                } else {
+                    Log.w("CarModelPredictorIntera",
+                            "Vector has wrong size for car ${car.name}: ${vector.vectorCount}")
+                }
+            }
         }
 
-        vectorFloats = testVectors
-
-        carNames = (0..count-1).map{i -> "Car_" + i.toString()}
+        carVectors = vectors.toFloatArray()
+        carLabels = labels.toIntArray()
+        carLabelNames = labelNames
     }
 
     fun getSimilarities(bitmap: Bitmap): SimilaritiesResult {
-        val vectorFloats = vectorFloats!!
-
         val pixelCount = bitmap.width * bitmap.height
 
         // Allocate the image buffers
@@ -64,9 +87,9 @@ class CarModelPredictorInteractor constructor(assets: AssetManager) {
         for(pixelIndex in 0..pixelCount-1) {
             val pixelValue = imageInts[pixelIndex]
             imageFloats[3 * pixelIndex + 0] =
-                    2.0f * (((pixelValue shl 16) and 0xFF).toFloat() / 255.0f - 0.5f)
+                    2.0f * (((pixelValue shr 16) and 0xFF).toFloat() / 255.0f - 0.5f)
             imageFloats[3 * pixelIndex + 1] =
-                    2.0f * (((pixelValue shl 8) and 0xFF).toFloat() / 255.0f - 0.5f)
+                    2.0f * (((pixelValue shr 8) and 0xFF).toFloat() / 255.0f - 0.5f)
             imageFloats[3 * pixelIndex + 2] =
                     2.0f * ((pixelValue and 0xFF).toFloat() / 255.0f - 0.5f)
         }
@@ -76,20 +99,23 @@ class CarModelPredictorInteractor constructor(assets: AssetManager) {
 
         val infTime = System.currentTimeMillis()
 
-        // Copy image floats to TensorFlow
+        // Copy image to TensorFlow
         inferenceInterface.feed(INPUT_IMAGES_NAME, imageFloats,
                 1, bitmap.width.toLong(), bitmap.height.toLong(), 3)
 
-        // Copy vector floats to TensorFlow
-        inferenceInterface.feed(INPUT_VECTORS_NAME, vectorFloats,
-                vectorCount.toLong(), VECTOR_SIZE.toLong())
+        // Copy vectors to TensorFlow
+        inferenceInterface.feed(INPUT_VECTORS_NAME, carVectors, carCount.toLong(),
+                VECTOR_SIZE.toLong())
+
+        // Copy labels to TensorFlow
+        inferenceInterface.feed(INPUT_LABELS_NAME, carLabels, carCount.toLong())
 
         // Run TensorFlow calculations
         inferenceInterface.run(arrayOf(SORTED_SIMILARITIES_INDICES_NAME, SORTED_SIMILARITIES_NAME), false)
 
         // Get results
-        val sortedSimilaritiesIndices = IntArray(vectorCount)
-        val sortedSimilarities = FloatArray(vectorCount)
+        val sortedSimilaritiesIndices = IntArray(carLabelCount)
+        val sortedSimilarities = FloatArray(carLabelCount)
 
         inferenceInterface.fetch(SORTED_SIMILARITIES_INDICES_NAME, sortedSimilaritiesIndices)
         inferenceInterface.fetch(SORTED_SIMILARITIES_NAME, sortedSimilarities)
@@ -100,14 +126,12 @@ class CarModelPredictorInteractor constructor(assets: AssetManager) {
         // Map similarities to 0..1 while avoiding division by zero
         val simMin = sortedSimilarities.min()!!
         val simRange = sortedSimilarities.max()!! - simMin
-
-        val similarities = sortedSimilarities.map { sim ->
+        val normalizedSortedSimilarities = sortedSimilarities.map { sim ->
             (sim - simMin) / if(simRange == 0.0f) 1.0f else simRange
         }.toFloatArray()
 
-        val unsortedNames = carNames!!
-        val sortedNames = sortedSimilaritiesIndices.map {i -> unsortedNames[i] }
-
-        return SimilaritiesResult(similarities, sortedNames)
+        return SimilaritiesResult(normalizedSortedSimilarities, sortedSimilaritiesIndices.map {
+            labelIndex -> carLabelNames[labelIndex]
+        })
     }
 }

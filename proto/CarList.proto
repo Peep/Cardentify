@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package net.cardentify.data;
+
+message CarVector {
+    repeated float vector = 1;
+}
+
+message CarInfo {
+    string name = 1;
+    repeated CarVector vectors = 2;
+}
+
+message CarList {
+    repeated CarInfo cars = 1;
+}
