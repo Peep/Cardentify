@@ -101,7 +101,7 @@ class CarModelPredictorInteractor constructor(assets: AssetManager) {
 
         // Copy image to TensorFlow
         inferenceInterface.feed(INPUT_IMAGES_NAME, imageFloats,
-                1, bitmap.width.toLong(), bitmap.height.toLong(), 3)
+                1, bitmap.height.toLong(), bitmap.width.toLong(), 3)
 
         // Copy vectors to TensorFlow
         inferenceInterface.feed(INPUT_VECTORS_NAME, carVectors, carCount.toLong(),
