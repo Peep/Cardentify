@@ -5,6 +5,7 @@ import android.app.ProgressDialog
 import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Bundle
+import android.os.PersistableBundle
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.Menu
@@ -122,18 +123,26 @@ class CarModelPredictorActivity : AppCompatActivity() {
         setContentView(R.layout.activity_car_model_predictor)
         setSupportActionBar(toolbar)
 
-        val pres = CarModelPredictorPresenter(this)
-        presenter = pres
-
         // Setup the car model list adapter
+        // This needs to happen before the presenter is created as
+        // the presenter will try to restore the previous state
         carModelAdapter = CarModelListAdapter(this)
         val carModelList = findViewById(R.id.car_model_list) as ListView
         carModelList.adapter = carModelAdapter
+
+        val pres = CarModelPredictorPresenter(this,
+                savedInstanceState?.getParcelable("State"))
+        presenter = pres
 
         // Setup the camera click button event
         fab_camera.setOnClickListener { _ ->
             pres.onCameraButtonClicked()
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putParcelable("State", presenter?.getPredictorState())
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

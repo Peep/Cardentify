@@ -2,17 +2,15 @@ package net.cardentify.app
 
 import android.content.res.AssetManager
 import android.graphics.Bitmap
-import android.os.Trace
 import android.util.Log
 import net.cardentify.data.CarListOuterClass
 import org.tensorflow.contrib.android.TensorFlowInferenceInterface
-import java.io.FileInputStream
 import java.util.*
 
 /**
  * Created by Tora on 6/25/2017.
  */
-class CarModelPredictorInteractor constructor(assets: AssetManager) {
+class CarModelPredictorInteractor constructor(assetManager: AssetManager, state: CarModelPredictorState? = null) {
     data class SimilaritiesResult(val similarities: FloatArray, val names: Collection<String>)
 
     val VECTOR_SIZE = 256
@@ -24,23 +22,43 @@ class CarModelPredictorInteractor constructor(assets: AssetManager) {
     val MODEL_PATH = "file:///android_asset/model.pb"
     val VECTORS_PATH = "vectors.pb"
 
-    val inferenceInterface = TensorFlowInferenceInterface(assets, MODEL_PATH)
+    val inferenceInterface = TensorFlowInferenceInterface(assetManager, MODEL_PATH)
 
-    var carVectors: FloatArray
-    var carLabels: IntArray
+    /**
+     * Flat float list of car vectors
+     */
+    lateinit var carVectors: FloatArray
+    lateinit var carLabels: IntArray
     val carCount: Int
         get() {
             return carVectors.size / VECTOR_SIZE
         }
 
-    var carLabelNames: List<String>
+    /**
+     * List of unique car names
+     */
+    lateinit var carLabelNames: List<String>
     val carLabelCount: Int
         get() {
             return carLabelNames.size
         }
 
+    /**
+     * Result of a similarity calculation. Call calcSimilarities to calculate this.
+     */
+    var result: SimilaritiesResult? = null
+
     init {
-        val carList = CarListOuterClass.CarList.parseFrom(assets.open(VECTORS_PATH))
+        loadData(assetManager)
+
+        // Restore previous result if state was passed
+        if(state != null && state.predNames != null && state.predSimilarities != null) {
+            result = SimilaritiesResult(state.predSimilarities, state.predNames)
+        }
+    }
+
+    fun loadData(assetManager: AssetManager) {
+        val carList = CarListOuterClass.CarList.parseFrom(assetManager.open(VECTORS_PATH))
 
         val vectors = ArrayList<Float>()
         val labels = ArrayList<Int>()
@@ -70,7 +88,7 @@ class CarModelPredictorInteractor constructor(assets: AssetManager) {
         carLabelNames = labelNames
     }
 
-    fun getSimilarities(bitmap: Bitmap): SimilaritiesResult {
+    fun calcSimilarities(bitmap: Bitmap) {
         val pixelCount = bitmap.width * bitmap.height
 
         // Allocate the image buffers
@@ -82,6 +100,7 @@ class CarModelPredictorInteractor constructor(assets: AssetManager) {
 
         // Load the bitmap pixels into the integer array
         bitmap.getPixels(imageInts, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
+        Log.d("calculateImageVector", "Image format: ${bitmap.config.name}")
 
         // Convert integers to floats in range -1..1
         for(pixelIndex in 0..pixelCount-1) {
@@ -130,7 +149,7 @@ class CarModelPredictorInteractor constructor(assets: AssetManager) {
             (sim - simMin) / if(simRange == 0.0f) 1.0f else simRange
         }.toFloatArray()
 
-        return SimilaritiesResult(normalizedSortedSimilarities, sortedSimilaritiesIndices.map {
+        result = SimilaritiesResult(normalizedSortedSimilarities, sortedSimilaritiesIndices.map {
             labelIndex -> carLabelNames[labelIndex]
         })
     }
